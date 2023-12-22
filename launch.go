@@ -20,7 +20,7 @@ var (
 	YUZU_GLOBAL_CONFIG   	= filepath.Join(ROAMING_APP_DATA, "yuzu", "config", "qt-config.ini")
 	SSBU_MOD_LOC  			= filepath.Join(ROAMING_APP_DATA, "yuzu", "sdmc", "yuzu", "load", SSBU_TITLE_ID)
 	SSBU_CONFIG  			= filepath.Join(ROAMING_APP_DATA, "yuzu", "config", "custom", fmt.Sprintf("%s.ini", SSBU_TITLE_ID))
-	DEFAULT_LAUNCH_DIR		= filepath.Join(LOCAL_APP_DATA, "yuzu_ssbu")
+	DEFAULT_LAUNCH_DIR		= filepath.Join(LOCAL_APP_DATA, "yuzu")
 )
 
 func main() {
