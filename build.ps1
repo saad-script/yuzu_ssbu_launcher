@@ -1,4 +1,10 @@
-Remove-Item '.\build' -Recurse -Force
+$force_reoptimize = $true
+
+Remove-Item -Path '.\build' -Recurse -Force
+
+if ($force_reoptimize) {
+    New-Item -Path ".\build\yuzu_ssbu_launcher\.force_reoptimize_flag" -ItemType File -Force
+}
 
 Copy-Item -Path ".\icons" -Destination ".\build\yuzu_ssbu_launcher\icons" -Recurse -Force
 

@@ -2,7 +2,6 @@ package main
 
 import (
 	"embed"
-	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -22,7 +21,8 @@ var (
 	LOCAL_APP_DATA 			= os.Getenv("LOCALAPPDATA")
 	ROAMING_APP_DATA 		= os.Getenv("APPDATA")
 	YUZU_DATA_LOC			= filepath.Join(ROAMING_APP_DATA, "yuzu")
-	YUZU_OPTIMIZED_FLAG		= filepath.Join(YUZU_DATA_LOC, ".yuzu_launcher_optimized_flag")
+	FORCE_REOPTIMIZE_FLAG	= ".force_reoptimize_flag"
+	YUZU_IS_OPTIMIZED_FLAG	= filepath.Join(YUZU_DATA_LOC, ".yuzu_launcher_optimized_flag")
 	YUZU_GLOBAL_CONFIG   	= filepath.Join(YUZU_DATA_LOC, "config", "qt-config.ini")
 	SSBU_MOD_LOC  			= filepath.Join(YUZU_DATA_LOC, "sdmc", "yuzu", "load", SSBU_TITLE_ID)
 	SSBU_CONFIG  			= filepath.Join(YUZU_DATA_LOC, "config", "custom", fmt.Sprintf("%s.ini", SSBU_TITLE_ID))
@@ -35,22 +35,30 @@ func main() {
 	os.Stdout = logFile
     os.Stderr = logFile
 
-	optimizeFlag := flag.Bool("optimize", false, "Use this flag to force reapply optimized settings")
-	flag.Parse()
-	args := flag.Args()
-	if len(args) < 1 {
+	if len(os.Args) < 2 {
 		errorExit("Please provide an integer representing the FPS you want to run the game at (ex: 120)", nil, 1)
 	}
 
 	isAlreadyOptimized := true
-	if _, err := os.Stat(YUZU_OPTIMIZED_FLAG); err != nil {
+	if _, err := os.Stat(YUZU_IS_OPTIMIZED_FLAG); err != nil {
 		isAlreadyOptimized = false
 		fmt.Println("Yuzu Settings are not optimized.")
-		f, _ := os.Create(YUZU_OPTIMIZED_FLAG)
+		f, _ := os.Create(YUZU_IS_OPTIMIZED_FLAG)
 		f.Close()
 	}
 
-	if *optimizeFlag || !isAlreadyOptimized {
+	forceReoptimize := false
+	executablePath, err := os.Executable()
+	forceReoptimizeFile := filepath.Join(filepath.Dir(executablePath), FORCE_REOPTIMIZE_FLAG)
+	if err == nil {	
+		if _, err := os.Stat(forceReoptimizeFile); err == nil {
+			forceReoptimize = true
+			fmt.Println("Force reoptimize flag found")
+			os.Remove(forceReoptimizeFile)
+		}
+	}
+
+	if !isAlreadyOptimized || forceReoptimize {
 		fmt.Println("Applying yuzu optimized settings...")
 		applyBundledOptimizedSettings()
 	}
@@ -59,7 +67,7 @@ func main() {
 	ini.PrettyFormat = false
 	ini.PrettyEqual = false
 
-	TARGET_FPS = parseInt(args[0])
+	TARGET_FPS = parseInt(os.Args[1])
 	fmt.Println("Target FPS:", TARGET_FPS);
 
 	fmt.Println("Searching for SSBU Rom...")
