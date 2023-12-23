@@ -13,10 +13,11 @@ import (
 )
 
 //go:embed bundle/optimized_settings.zip
-var embeddedFile embed.FS
+var optimizedSettingsZip embed.FS
 
 var (
-	TARGET_FPS       		int
+	TARGET_FPS       		int	
+	LOG_FILE	 			*os.File
 	SSBU_TITLE_ID     		= "01006A800016E000"
 	LOCAL_APP_DATA 			= os.Getenv("LOCALAPPDATA")
 	ROAMING_APP_DATA 		= os.Getenv("APPDATA")
@@ -30,10 +31,8 @@ var (
 )
 
 func main() {
-	logFile, _ := os.OpenFile("yuzu_ssbu_launcher.log", os.O_WRONLY|os.O_CREATE, 0666)
-	defer logFile.Close()
-	os.Stdout = logFile
-    os.Stderr = logFile
+	LOG_FILE, _ = os.OpenFile("yuzu_ssbu_launcher.log", os.O_WRONLY|os.O_CREATE, 0666)
+	defer LOG_FILE.Close()
 
 	if len(os.Args) < 2 {
 		errorExit("Please provide an integer representing the FPS you want to run the game at (ex: 120)", nil, 1)
@@ -42,7 +41,7 @@ func main() {
 	isAlreadyOptimized := true
 	if _, err := os.Stat(YUZU_IS_OPTIMIZED_FLAG); err != nil {
 		isAlreadyOptimized = false
-		fmt.Println("Yuzu Settings are not optimized.")
+		logPrintln("Yuzu Settings are not optimized.")
 		f, _ := os.Create(YUZU_IS_OPTIMIZED_FLAG)
 		f.Close()
 	}
@@ -53,13 +52,13 @@ func main() {
 	if err == nil {	
 		if _, err := os.Stat(forceReoptimizeFile); err == nil {
 			forceReoptimize = true
-			fmt.Println("Force reoptimize flag found")
+			logPrintln("Force reoptimize flag found")
 			os.Remove(forceReoptimizeFile)
 		}
 	}
 
 	if !isAlreadyOptimized || forceReoptimize {
-		fmt.Println("Applying yuzu optimized settings...")
+		logPrintln("Applying yuzu optimized settings...")
 		applyBundledOptimizedSettings()
 	}
 
@@ -68,25 +67,25 @@ func main() {
 	ini.PrettyEqual = false
 
 	TARGET_FPS = parseInt(os.Args[1])
-	fmt.Println("Target FPS:", TARGET_FPS);
+	logPrintln("Target FPS:", TARGET_FPS);
 
-	fmt.Println("Searching for SSBU Rom...")
+	logPrintln("Searching for SSBU Rom...")
 	ssbuGamePath := findSSBURom()
 	if ssbuGamePath == "" {
 		errorExit("Unable to find SSBU Rom", nil, 1)
 	}
-	fmt.Println("Found SSBU ROM:", ssbuGamePath)
+	logPrintln("Found SSBU ROM:", ssbuGamePath)
 
-	fmt.Println("Updating Game Speed...")
+	logPrintln("Updating Game Speed...")
 	updateGameSpeed()
-	fmt.Println("Updating FPS Mod...")
+	logPrintln("Updating FPS Mod...")
 	updateFPSMod()
-	fmt.Println("Starting Yuzu...")
+	logPrintln("Starting Yuzu...")
 	startYuzu(ssbuGamePath)
 }
 
 func applyBundledOptimizedSettings() {
-	zipData, err := embeddedFile.ReadFile("bundle/optimized_settings.zip")
+	zipData, err := optimizedSettingsZip.ReadFile("bundle/optimized_settings.zip")
 	if err != nil {
 		errorExit("Failed to read embedded settings zip file", err, 1)
 	}
@@ -221,7 +220,12 @@ func parseInt(str string) int {
 }
 
 func errorExit(message string, err error, exitCode int) {
-	fmt.Println(message)
-	fmt.Println(err)
+	logPrintln(message)
+	logPrintln(err)
 	os.Exit(exitCode)
+}
+
+func logPrintln(a ...any) {
+	fmt.Println(a...)
+	fmt.Fprintln(LOG_FILE, a...)
 }
