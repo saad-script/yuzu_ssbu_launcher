@@ -31,7 +31,7 @@ var (
 )
 
 func main() {
-	LOG_FILE, _ = os.OpenFile("yuzu_ssbu_launcher.log", os.O_WRONLY|os.O_CREATE, 0666)
+	LOG_FILE, _ = os.OpenFile("yuzu_ssbu_launcher.log", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	defer LOG_FILE.Close()
 
 	if len(os.Args) < 2 {
@@ -186,7 +186,7 @@ func updateFPSMod() {
 		}
 	}
 
-	fpsCheatFile, err := os.OpenFile(filepath.Join(FPSModPath, "B9B166DF1DB90BAF.txt"), os.O_WRONLY|os.O_CREATE, 0666)
+	fpsCheatFile, err := os.OpenFile(filepath.Join(FPSModPath, "B9B166DF1DB90BAF.txt"), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		errorExit("Error writing fps mod file", err, 1)
 	}
