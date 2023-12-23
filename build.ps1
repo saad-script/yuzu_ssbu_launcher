@@ -2,6 +2,8 @@ $force_reoptimize = $true
 
 Remove-Item -Path '.\build' -Recurse -Force
 
+Compress-Archive -Path ".\bundle\optimized_settings\*" -DestinationPath ".\bundle\optimized_settings.zip" -Force
+
 if ($force_reoptimize) {
     New-Item -Path ".\build\yuzu_ssbu_launcher\.force_reoptimize_flag" -ItemType File -Force
 }
