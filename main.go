@@ -25,7 +25,7 @@ var (
 	FORCE_REOPTIMIZE_FLAG	= ".force_reoptimize_flag"
 	YUZU_IS_OPTIMIZED_FLAG	= filepath.Join(YUZU_DATA_LOC, ".yuzu_launcher_optimized_flag")
 	YUZU_GLOBAL_CONFIG   	= filepath.Join(YUZU_DATA_LOC, "config", "qt-config.ini")
-	SSBU_MOD_LOC  			= filepath.Join(YUZU_DATA_LOC, "sdmc", "yuzu", "load", SSBU_TITLE_ID)
+	SSBU_MOD_LOC  			= filepath.Join(YUZU_DATA_LOC, "yuzu", "load", SSBU_TITLE_ID)
 	SSBU_CONFIG  			= filepath.Join(YUZU_DATA_LOC, "config", "custom", fmt.Sprintf("%s.ini", SSBU_TITLE_ID))
 	DEFAULT_LAUNCH_DIR		= filepath.Join(LOCAL_APP_DATA, "yuzu")
 )
