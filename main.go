@@ -16,18 +16,18 @@ import (
 var optimizedSettingsZip embed.FS
 
 var (
-	TARGET_FPS       		int	
-	LOG_FILE	 			*os.File
-	SSBU_TITLE_ID     		= "01006A800016E000"
-	LOCAL_APP_DATA 			= os.Getenv("LOCALAPPDATA")
-	ROAMING_APP_DATA 		= os.Getenv("APPDATA")
-	YUZU_DATA_LOC			= filepath.Join(ROAMING_APP_DATA, "yuzu")
-	FORCE_REOPTIMIZE_FLAG	= ".force_reoptimize_flag"
-	YUZU_IS_OPTIMIZED_FLAG	= filepath.Join(YUZU_DATA_LOC, ".yuzu_launcher_optimized_flag")
-	YUZU_GLOBAL_CONFIG   	= filepath.Join(YUZU_DATA_LOC, "config", "qt-config.ini")
-	SSBU_MOD_LOC  			= filepath.Join(YUZU_DATA_LOC, "load", SSBU_TITLE_ID)
-	SSBU_CONFIG  			= filepath.Join(YUZU_DATA_LOC, "config", "custom", fmt.Sprintf("%s.ini", SSBU_TITLE_ID))
-	DEFAULT_LAUNCH_DIR		= filepath.Join(LOCAL_APP_DATA, "yuzu")
+	TARGET_FPS             int
+	LOG_FILE               *os.File
+	SSBU_TITLE_ID          = "01006A800016E000"
+	LOCAL_APP_DATA         = os.Getenv("LOCALAPPDATA")
+	ROAMING_APP_DATA       = os.Getenv("APPDATA")
+	YUZU_DATA_LOC          = filepath.Join(ROAMING_APP_DATA, "yuzu")
+	FORCE_REOPTIMIZE_FLAG  = ".force_reoptimize_flag"
+	YUZU_IS_OPTIMIZED_FLAG = filepath.Join(YUZU_DATA_LOC, ".yuzu_launcher_optimized_flag")
+	YUZU_GLOBAL_CONFIG     = filepath.Join(YUZU_DATA_LOC, "config", "qt-config.ini")
+	SSBU_MOD_LOC           = filepath.Join(YUZU_DATA_LOC, "load", SSBU_TITLE_ID)
+	SSBU_CONFIG            = filepath.Join(YUZU_DATA_LOC, "config", "custom", fmt.Sprintf("%s.ini", SSBU_TITLE_ID))
+	DEFAULT_LAUNCH_DIR     = filepath.Join(LOCAL_APP_DATA, "yuzu")
 )
 
 func main() {
@@ -42,14 +42,12 @@ func main() {
 	if _, err := os.Stat(YUZU_IS_OPTIMIZED_FLAG); err != nil {
 		isAlreadyOptimized = false
 		logPrintln("Yuzu Settings are not optimized.")
-		f, _ := os.Create(YUZU_IS_OPTIMIZED_FLAG)
-		f.Close()
 	}
 
 	forceReoptimize := false
 	executablePath, err := os.Executable()
 	forceReoptimizeFile := filepath.Join(filepath.Dir(executablePath), FORCE_REOPTIMIZE_FLAG)
-	if err == nil {	
+	if err == nil {
 		if _, err := os.Stat(forceReoptimizeFile); err == nil {
 			forceReoptimize = true
 			logPrintln("Force reoptimize flag found")
@@ -67,7 +65,7 @@ func main() {
 	ini.PrettyEqual = false
 
 	TARGET_FPS = parseInt(os.Args[1])
-	logPrintln("Target FPS:", TARGET_FPS);
+	logPrintln("Target FPS:", TARGET_FPS)
 
 	logPrintln("Searching for SSBU Rom...")
 	ssbuGamePath := findSSBURom()
@@ -93,16 +91,17 @@ func applyBundledOptimizedSettings() {
 	if err != nil {
 		errorExit("Error extracting embedded settings zip file", err, 1)
 	}
+	f, _ := os.Create(YUZU_IS_OPTIMIZED_FLAG)
+	f.Close()
 }
 
 func findSSBURom() string {
 	gameDirectories := []string{}
-	
+
 	globalConfig, err := ini.Load(YUZU_GLOBAL_CONFIG)
 	if err != nil {
 		errorExit("Error opening global config file", err, 1)
 	}
-
 
 	globalUIConfig := globalConfig.Section("UI")
 	for _, key := range globalUIConfig.Keys() {
@@ -129,14 +128,14 @@ func findSSBURom() string {
 		if err != nil {
 			errorExit("Error reading game directory contents", err, 1)
 		}
-		
+
 		for _, fileInfo := range fileInfos {
 			if fileInfo.Mode().IsRegular() {
 				fileName := fileInfo.Name()
 				fileExt := filepath.Ext(fileName)
-				containsSmashString := strings.Contains(fileName, SSBU_TITLE_ID) || 
-									strings.Contains(fileName, "Super Smash Bros") ||
-									strings.Contains(fileName, "SSBU")
+				containsSmashString := strings.Contains(fileName, SSBU_TITLE_ID) ||
+					strings.Contains(fileName, "Super Smash Bros") ||
+					strings.Contains(fileName, "SSBU")
 				isROMFile := fileExt == ".xci" || fileExt == ".nsp"
 				isBigFile := fileInfo.Size() >= 13000000000
 				if containsSmashString && isROMFile && isBigFile {
@@ -177,7 +176,7 @@ func updateGameSpeed() {
 func updateFPSMod() {
 	internalGameFPS := 3600 / TARGET_FPS
 	internalGameFPSHexFormatted := fmt.Sprintf("%08X", internalGameFPS)
-		
+
 	FPSModPath := filepath.Join(SSBU_MOD_LOC, "Custom FPS", "cheats")
 	if _, err := os.Stat(FPSModPath); err != nil {
 		err := os.MkdirAll(FPSModPath, 0777)
